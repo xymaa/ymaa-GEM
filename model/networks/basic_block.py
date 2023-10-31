@@ -1,3 +1,12 @@
+"""
+一些经常被使用的模块
+包括如下：
+（1）激活函数：可以选择relu或leakyrelu
+（2）MLP层：输入总层数，输入、输出维度等
+（3）RBF层：径向基函数层
+"""
+
+
 import torch
 import torch.nn as nn
 
@@ -34,3 +43,13 @@ class MLP(nn.Module):
 
     def forward(self, x):
         return self.mlp(x)
+
+class RBF(nn.Module):
+    def __init__(self, centers, gamma, dtype=torch.float32):
+        super(RBF, self).__init__()
+        self.centers = torch.reshape(torch.tensor(centers, dtype=dtype), [1, -1]).cuda()
+        self.gamma = torch.tensor(gamma).cuda()
+
+    def forward(self, x):
+        x = torch.reshape(x, [1, -1])
+        return torch.exp(-self.gamma * torch.square(x - self.centers))

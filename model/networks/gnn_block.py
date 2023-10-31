@@ -10,7 +10,7 @@ from dgl.nn.pytorch import GATConv
 my_device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 # 更像是用来初始化？
-# 有待验证
+# 有待验证！
 class GraphNorm(nn.Module):
     def __init__(self):
         super(GraphNorm, self).__init__()

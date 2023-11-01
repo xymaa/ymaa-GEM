@@ -61,6 +61,7 @@ class GIN(nn.Module):
         node_feat = self.mlp(node_feat)
         return node_feat
 
+# 图注意力网络
 class GATLayer(nn.Module):
     def __init__(self, in_dim, out_dim):
         super(GATLayer, self).__init__()
@@ -68,10 +69,34 @@ class GATLayer(nn.Module):
         self.attn_fc = nn.Linear(2 * out_dim, 1, bias=False)
         self.reset_parameters()
 
+    # 初始化网络参数
     def reset_parameters(self):
+        # gain用来调整权重的标准差
         gain = nn.init.calculate_gain("relu")
         nn.init.xavier_normal_(self.fc.weight, gain=gain)
         nn.init.xavier_normal_(self.attn_fc.weight, gain=gain)
 
-    def edge_attention(self, edges)
+    # 拼接目标节点和源节点的特征向量，计算原始的图注意力
+    def edge_attention(self, edges):
+        z2 = torch.cat([edges.src["z"], edges.dst["z"]], dim=1)
+        a = self.attn_fc(z2)
+        return {"e": F.leaky_relu(a)}
 
+    # 返回源节点和边的特征向量字典
+    # 生成沿着边传递的信息
+    def message_func(self, edges):
+        return {"z": edges.src["z"], "e": edges.data["e"]}
+
+    # 得到聚合后的节点特征向量
+    def reduce_func(self, nodes):
+        alpha = F.softmax(nodes.mailbox["e"], dim=1)
+        h = torch.sum(alpha * nodes.mailbox["z"], dim=1)
+        return {"h": h}
+
+    # 得到更新后的结点特征
+    def forward(self,g, h):
+        z = self.fc(h)
+        g.ndata["z"] = z
+        g.apply_edges(self.edge_attention)
+        g.update_all(self.message_func, self.reduce_func)
+        return g.ndata.pop("h")

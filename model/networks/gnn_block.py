@@ -73,5 +73,5 @@ class GATLayer(nn.Module):
         nn.init.xavier_normal_(self.fc.weight, gain=gain)
         nn.init.xavier_normal_(self.attn_fc.weight, gain=gain)
 
-    def edge_attention(self, edges):
+    def edge_attention(self, edges)
 
